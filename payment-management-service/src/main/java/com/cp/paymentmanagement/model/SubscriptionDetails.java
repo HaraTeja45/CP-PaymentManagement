@@ -2,6 +2,9 @@ package com.cp.paymentmanagement.model;
 
 import java.sql.Timestamp;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 
@@ -19,8 +22,10 @@ public class SubscriptionDetails {
 
 	private String planStatus;
 
+	@CreationTimestamp
 	private Timestamp createdDateTime;
 
+	@UpdateTimestamp
 	private Timestamp updatedDateTime;
 
 	private Integer isActive;
