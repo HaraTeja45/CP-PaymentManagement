@@ -6,11 +6,13 @@ import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
@@ -18,13 +20,14 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 @Configuration
+@ConfigurationProperties
 public class RedisConfig {
 
-	@Value("${redis.cache.host}")
+	@Value("${spring.data.redis.host}")
 	private String redisHostName;
 
-	@Value("${redis.cache.port}")
-	private Integer redisPort;
+	@Value("${spring.data.redis.port}")
+	private int redisPort;
 
 	@Value("${redis.cluster.enable:false}")
 	private boolean isClusterEnabled;
@@ -39,16 +42,18 @@ public class RedisConfig {
 
 		if (isClusterEnabled) {
 
+			RedisNode redisNode = new RedisNode(redisHostName, redisPort);
 			RedisClusterConfiguration redisClusterConfiguration = new RedisClusterConfiguration();
-			redisClusterConfiguration.clusterNode(redisHostName, redisPort);
+			redisClusterConfiguration.clusterNode(redisNode);
 
 			jedisConnectionFactory = new JedisConnectionFactory(redisClusterConfiguration,
 					jedisClientConfigurationBuilder.build());
 
 		} else {
-			RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration(redisHostName,
-					redisPort);
 
+			RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
+			redisStandaloneConfiguration.setHostName(redisHostName);
+			redisStandaloneConfiguration.setPort(redisPort);
 			jedisConnectionFactory = new JedisConnectionFactory(redisStandaloneConfiguration,
 					jedisClientConfigurationBuilder.build());
 		}
@@ -73,11 +78,12 @@ public class RedisConfig {
 		Config config = new Config();
 
 		if (isClusterEnabled) {
-			config.useClusterServers().addNodeAddress(MessageFormat.format("{0}:{1}", redisHostName, redisPort));
+			config.useClusterServers()
+					.addNodeAddress(MessageFormat.format("{0}:{1}", "redis://" + redisHostName, "6379"));
 
 		} else {
-			config.useSingleServer().setAddress(MessageFormat.format("{0}:{1}", redisHostName, redisPort));
-	
+			config.useSingleServer().setAddress(MessageFormat.format("{0}:{1}", "redis://" + redisHostName, "6379"));
+
 		}
 
 		return Redisson.create(config);

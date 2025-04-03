@@ -46,14 +46,21 @@ public class CacheConfig {
 					map.forEach((userId, points) -> {
 						userId = userId.split(":")[1];
 
-						CustomerRewards customerRewards = new CustomerRewards();
+						CustomerRewards customerRewards = customerRewardsRepository
+								.findByCustomerIdAndIsActive(Long.valueOf(userId), PaymentServiceConstant.ISACTIVE);
 
-						customerRewards.setCustomerId(Long.valueOf(userId));
+						if (customerRewards != null) {
+							customerRewards.setRewardPoints(Integer.sum(points, customerRewards.getRewardPoints()));
+							customerRewardsRepository.save(customerRewards);
+						} else {
+							CustomerRewards newCustomerRewards = new CustomerRewards();
 
-						customerRewards.setIsActive(PaymentServiceConstant.ISACTIVE);
-						customerRewards.setRewardPoints(points);
+							newCustomerRewards.setCustomerId(Long.valueOf(userId));
 
-						customerRewardsRepository.save(customerRewards);
+							newCustomerRewards.setIsActive(PaymentServiceConstant.ISACTIVE);
+							newCustomerRewards.setRewardPoints(points);
+							customerRewardsRepository.save(newCustomerRewards);
+						}
 
 					});
 
@@ -68,7 +75,7 @@ public class CacheConfig {
 		};
 
 		MapOptions<String, Integer> options = MapOptions.<String, Integer>defaults().writerAsync(writer)
-				.writeMode(MapOptions.WriteMode.WRITE_BEHIND).writeBehindBatchSize(5).writeBehindDelay(5000);
+				.writeMode(MapOptions.WriteMode.WRITE_BEHIND).writeBehindBatchSize(5).writeBehindDelay(15000);
 
 		return redissonClient.getMapCache("rewardPointsCache", options);
 

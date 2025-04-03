@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import com.cp.paymentmanagement.bean.PaymentRequestBean;
 import com.cp.paymentmanagement.bean.PaymentResponse;
@@ -12,6 +13,7 @@ import com.cp.paymentmanagement.dao.TransactionDetailsRepository;
 import com.cp.paymentmanagement.helper.PaymentServiceConstant;
 import com.cp.paymentmanagement.model.TransactionDetails;
 
+@Service
 public class PaymentServiceImpl implements PaymentService {
 
 	@Value("${paymentgateway.flag:true}")

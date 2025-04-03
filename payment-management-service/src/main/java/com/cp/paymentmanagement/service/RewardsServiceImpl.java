@@ -9,6 +9,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import com.cp.paymentmanagement.bean.ResponseBean;
 import com.cp.paymentmanagement.dao.CustomerRewardsRepository;
@@ -19,6 +20,7 @@ import com.cp.paymentmanagement.model.CustomerRewards;
 import com.cp.paymentmanagement.model.SpinActivity;
 import com.cp.paymentmanagement.model.SubscriptionDetails;
 
+@Service
 public class RewardsServiceImpl implements RewardsService {
 
 	@Autowired
@@ -56,6 +58,7 @@ public class RewardsServiceImpl implements RewardsService {
 		ResponseBean responseBean = new ResponseBean();
 
 		Object object = rewardsCache.get(rewardsCacheKeyPefix + customerId);
+
 
 		if (object == null) {
 
@@ -95,7 +98,7 @@ public class RewardsServiceImpl implements RewardsService {
 							});
 
 					rewardsCache.put(rewardsCacheKeyPefix + customerId, updatedRewardPoints, cacheTTL,
-							TimeUnit.MINUTES);
+							TimeUnit.MILLISECONDS);
 				} else {
 					// throw error
 
@@ -143,7 +146,7 @@ public class RewardsServiceImpl implements RewardsService {
 				Integer currentSpinCount = spinCache.getOrDefault(spinCacheKey, 0);
 
 				if (currentSpinCount < spinLimit) {
-					spinCache.put(spinCacheKey, currentSpinCount + 1, 1, TimeUnit.HOURS);
+					spinCache.put(spinCacheKey, currentSpinCount + 1, 60000, TimeUnit.MILLISECONDS);
 
 					return true;
 
